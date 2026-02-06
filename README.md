@@ -12,6 +12,6 @@ To Run Backend:
 - Environment variables:
     - POSTGRES_URL=postgresql://user:pass@localhost:5432/investments
     - OPENAI_API_KEY=xxxxx
-    - OLLAMA_HOST=http://localhost:11434
+    - OLLAMA_HOST=optional
     - SECRET_KEY=supersecret
     - FRONTEND_ORIGIN=http://localhost:3000

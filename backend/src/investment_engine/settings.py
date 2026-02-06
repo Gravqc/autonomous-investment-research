@@ -1,3 +1,4 @@
+from typing import Optional
 from pydantic import AnyHttpUrl, PostgresDsn
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
@@ -5,7 +6,7 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 class Settings(BaseSettings):
     postgres_url: PostgresDsn
     openai_api_key: str
-    ollama_host: AnyHttpUrl
+    ollama_host: Optional[AnyHttpUrl] = None
     secret_key: str
     frontend_origin: AnyHttpUrl
 
