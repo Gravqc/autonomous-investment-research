@@ -9,7 +9,9 @@ import investment_engine.db.models.portfolio_snapshots
 import investment_engine.db.models.position_snapshots
 import investment_engine.db.models.experiments
 
-
+"""
+    - Run this file to initialize tables in postgres
+"""
 def init_db():
     Base.metadata.create_all(bind=engine)
     print("Tables created successfully 🚀")
