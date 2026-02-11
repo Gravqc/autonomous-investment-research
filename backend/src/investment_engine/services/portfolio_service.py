@@ -25,21 +25,21 @@ class PortfolioService:
                 .limit(1)
             ).scalar_one_or_none()
 
-            # positions = session.execute(
-            #     select(PositionSnapshot)
-            #     .where(PositionSnapshot.portfolio_id == portfolio_id)
-            # ).scalars().all()
+            positions = session.execute(
+                select(PositionSnapshot)
+                .where(PositionSnapshot.portfolio_id == portfolio_id)
+            ).scalars().all()
 
             return {
                 "portfolio_id": portfolio.id,
                 "cash_balance": latest_snapshot.cash_balance if latest_snapshot else 0,
                 "total_value": latest_snapshot.total_value if latest_snapshot else 0,
-                # "positions": [
-                #     {
-                #         "symbol": p.symbol,
-                #         "quantity": float(p.quantity),
-                #         "avg_price": float(p.avg_price),
-                #     }
-                #     for p in positions
-                # ],
+                "positions": [
+                    {
+                        "symbol": p.symbol,
+                        "quantity": float(p.quantity),
+                        "avg_price": float(p.avg_price),
+                    }
+                    for p in positions
+                ],
             }
