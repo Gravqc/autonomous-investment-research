@@ -127,9 +127,9 @@ def build_prompts(candidates: List[Dict]) -> Tuple[str, str]:
     {{
       "decisions": [
         {{
-          "symbol": "INFY",
-          "action": "BUY",
-          "confidence": 0.72,
+          "symbol": "Stock_Symbol",
+          "action": "BUY/SELL/HOLD",
+          "confidence": conf_score,
           "reasoning": "Short explanation."
         }}
       ]

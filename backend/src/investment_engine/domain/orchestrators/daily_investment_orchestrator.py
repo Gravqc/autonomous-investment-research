@@ -19,10 +19,10 @@ class DailyInvestmentOrchestrator:
         # Filter top 10 stocks 
         stock_candidates = filter_stock_candidates.fn(market_snapshot=market_snapshot)
         # Fill our stock candidates with recent news abt said stock and industry
-        stock_candidates_with_news_data = enrich_candidates.fn(candidates=stock_candidates)
+        #stock_candidates_with_news_data = enrich_candidates.fn(candidates=stock_candidates)
 
         # 4. LLM Decision Phase (New Step)
-        decisions = generate_decisions.fn(enriched_candidates=stock_candidates_with_news_data)
+        decisions = generate_decisions.fn(enriched_candidates=stock_candidates)
 
         print("done")
         # decision = mock_decision.fn(prices)
