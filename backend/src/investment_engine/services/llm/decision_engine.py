@@ -16,9 +16,9 @@ ollama_client = OpenAI(
 class DecisionEngine:
 
     @staticmethod
-    def generate(candidates):
+    def generate(state, candidates):
 
-        system_prompt, user_prompt = build_prompts(candidates)
+        system_prompt, user_prompt = build_prompts(state, candidates)
 
         try:
             response = client.chat.completions.parse(

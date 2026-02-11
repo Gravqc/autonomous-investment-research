@@ -2,11 +2,18 @@ from prefect import task
 from investment_engine.services.trade_service import TradeService
 
 @task
-def execute_trade(decision):
+def execute_trade(decisions, state, market_snapshot):
+    """
+    market_snapshot -> list of stocks from your fetch task
+    """
 
-    TradeService.execute_trade(
-        portfolio_id=1,
-        symbol=decision["symbol"],
-        side=decision["action"],
-        quantity=decision["quantity"],
+    price_lookup = {
+        s["symbol"]: s["current_price"]
+        for s in market_snapshot
+    }
+
+    TradeService.execute(
+        decision_response=decisions,
+        state=state,
+        price_lookup=price_lookup,
     )

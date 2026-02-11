@@ -12,9 +12,9 @@ To Run Backend:
 - PostGres:
     - docker compose up -d
         This will start a container with postgres.
-    - poetry run src/investment_engine/db/init_db.py
+    - poetry run python src/investment_engine/db/init_db.py
         Create tables (NOTE: Not migration as final db schemas are tbd) 
-    - poetry run scripts/seed.py
+    - poetry run python scripts/seed.py
         Create sample entry in tables
     - poetry run scripts/run_engine.py 
         This should populate the trades and portfolio_snapshot tables with some mock entries.

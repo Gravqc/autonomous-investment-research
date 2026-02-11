@@ -14,7 +14,7 @@ class Experiment(Base):
 
     starting_cash: Mapped[float] = mapped_column(Numeric(16, 2))
 
-    start_date: Mapped[datetime]
+    start_date: Mapped[datetime] = mapped_column(DateTime)
 
     llm_model: Mapped[str] = mapped_column(String(50))
 

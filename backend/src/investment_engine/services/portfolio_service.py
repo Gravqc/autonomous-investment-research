@@ -7,39 +7,44 @@ from investment_engine.db.models.position_snapshots import PositionSnapshot
 
 
 class PortfolioService:
-
-    @staticmethod
-    def get_current_state(portfolio_id: int = 1):
+    def build_state():
+        """
+            Returns the latest portfolio state:
+            - cash
+            - equity
+            - holdings
+        """
 
         with session_scope() as session:
 
-            portfolio = session.get(Portfolio, portfolio_id)
+            portfolio = session.query(Portfolio).first()
 
-            if not portfolio:
-                raise ValueError("Portfolio does not exist.")
+            latest_snapshot = (
+                session.query(PortfolioSnapshot)
+                .filter(PortfolioSnapshot.portfolio_id == portfolio.id)
+                .order_by(PortfolioSnapshot.created_at.desc())
+                .first()
+            )
 
-            latest_snapshot = session.execute(
-                select(PortfolioSnapshot)
-                .where(PortfolioSnapshot.portfolio_id == portfolio_id)
-                .order_by(desc(PortfolioSnapshot.created_at))
-                .limit(1)
-            ).scalar_one_or_none()
+            positions = (
+                session.query(PositionSnapshot)
+                .filter(PositionSnapshot.snapshot_id == latest_snapshot.id)
+                .all()
+            )
 
-            positions = session.execute(
-                select(PositionSnapshot)
-                .where(PositionSnapshot.portfolio_id == portfolio_id)
-            ).scalars().all()
+            holdings = [
+                {
+                    "symbol": p.symbol,
+                    "quantity": p.quantity,
+                    "avg_price": float(p.avg_price),
+                }
+                for p in positions
+            ]
 
             return {
                 "portfolio_id": portfolio.id,
-                "cash_balance": latest_snapshot.cash_balance if latest_snapshot else 0,
-                "total_value": latest_snapshot.total_value if latest_snapshot else 0,
-                "positions": [
-                    {
-                        "symbol": p.symbol,
-                        "quantity": float(p.quantity),
-                        "avg_price": float(p.avg_price),
-                    }
-                    for p in positions
-                ],
+                "cash_balance": float(latest_snapshot.cash_balance),
+                "equity_value": float(latest_snapshot.equity_value),
+                "total_value": float(latest_snapshot.total_value),
+                "holdings": holdings,
             }

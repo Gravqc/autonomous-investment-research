@@ -3,6 +3,6 @@ from investment_engine.services.llm.decision_engine import DecisionEngine
 
 
 @task
-def generate_decisions(enriched_candidates):
-    #return DecisionEngine.generate(enriched_candidates)
-    return DecisionEngine.generate_ollama(candidates=enriched_candidates)
+def generate_decisions(state, enriched_candidates):
+    return DecisionEngine.generate(state, enriched_candidates)
+    #return DecisionEngine.generate_ollama(state, candidates=enriched_candidates)

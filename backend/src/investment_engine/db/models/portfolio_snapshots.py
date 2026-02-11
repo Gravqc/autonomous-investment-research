@@ -25,3 +25,9 @@ class PortfolioSnapshot(Base):
     )
 
     portfolio = relationship("Portfolio", back_populates="snapshots")
+    positions = relationship(
+    "PositionSnapshot",
+    backref="snapshot",
+    cascade="all, delete-orphan"
+)
+

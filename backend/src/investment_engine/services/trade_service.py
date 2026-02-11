@@ -7,34 +7,67 @@ from investment_engine.services.data_sources.market_client import MarketDataClie
 
 class TradeService:
 
+    MAX_POSITION_PCT = 0.20   # 20% cap
+    MIN_CONFIDENCE = 0.60
+
     @staticmethod
-    def execute_trade(
-        portfolio_id: int,
-        symbol: str,
-        side: str,
-        quantity: float,
-        decision_id: int | None = None,
-    ):
+    def execute(decision_response, state, price_lookup):
 
         with session_scope() as session:
 
-            price = MarketDataClient.get_latest_price(symbol)
+            cash = state["cash_balance"]
+            portfolio_id = state["portfolio_id"]
 
-            trade = Trade(
-                portfolio_id=portfolio_id,
-                symbol=symbol,
-                side=side,
-                quantity=quantity,
-                price=price,
-                total_value=price * quantity,
-                executed_at=datetime.utcnow(),
-                decision_id=decision_id,
-            )
+            for d in decision_response.decisions:
 
-            session.add(trade)
+                if d.confidence < TradeService.MIN_CONFIDENCE:
+                    continue
 
-            return {
-                "symbol": symbol,
-                "price": price,
-                "quantity": quantity,
-            }
+                symbol = d.symbol
+                price = price_lookup.get(symbol)
+
+                if not price:
+                    continue
+
+                requested_qty = d.quantity
+
+                if requested_qty <= 0:
+                    continue
+
+                # 🔥 HARD RISK CAP
+                max_alloc_cash = cash * TradeService.MAX_POSITION_PCT
+                max_qty_allowed = int(max_alloc_cash // price)
+
+                final_qty = min(requested_qty, max_qty_allowed)
+                total_val = final_qty * price
+
+                if final_qty <= 0:
+                    continue
+
+                if d.action == "BUY":
+
+                    trade = Trade(
+                        portfolio_id=portfolio_id,
+                        symbol=symbol,
+                        side="BUY",
+                        total_value=total_val,
+                        quantity=final_qty,
+                        price=price,
+                    )
+
+                    session.add(trade)
+
+                    cash -= final_qty * price
+
+                elif d.action == "SELL":
+
+                    trade = Trade(
+                        portfolio_id=portfolio_id,
+                        symbol=symbol,
+                        side="SELL",
+                        total_value = total_val,
+                        quantity=final_qty,
+                        price=price,
+                    )
+
+                    session.add(trade)

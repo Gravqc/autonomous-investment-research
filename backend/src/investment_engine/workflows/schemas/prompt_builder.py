@@ -18,6 +18,14 @@ RULES:
 - Use ONLY the provided structured data.
 - Think like a portfolio manager — capital is limited.
 
+POSITION SIZING RULES:
+
+- Never allocate more than 20% of available cash to a single position.
+- Prefer smaller sizing when confidence is moderate.
+- Quantity must be realistic relative to price.
+- If unsure → choose smaller size.
+
+
 CONFIDENCE SCALE:
 0.5–0.6 → weak  
 0.6–0.75 → moderate  
@@ -96,41 +104,50 @@ def _format_stock(stock: Dict) -> str:
     """)
 
 
-def build_prompts(candidates: List[Dict]) -> Tuple[str, str]:
-
+def build_prompts(state: Dict, candidates: List[Dict]) -> Tuple[str, str]:
+    # 1. Format the Candidate XML
     stocks_xml = "\n".join(_format_stock(stock) for stock in candidates)
 
+    # 2. Extract and format the Current Holdings list
+    holdings = state.get("holdings", [])
+    if holdings:
+        holdings_formatted = "\n".join(
+            f"- {h['symbol']}: {h['quantity']} shares (Avg Price: {h['avg_price']})"
+            for h in holdings
+        )
+    else:
+        holdings_formatted = "No current positions (100% Cash)."
+
+    # 3. Build the User Prompt with the State Context
     user_prompt = dedent(f"""
-    The following stocks were pre-filtered from the NIFTY 50 universe
-    based on abnormal trading activity and recent news attention.
+    [PORTFOLIO CONTEXT]
+    - Cash Balance: {state['cash_balance']}
+    - Equity Value: {state['equity_value']}
+    - Total Portfolio Value: {state['total_value']}
+    
+    Current Holdings:
+    {holdings_formatted}
 
-    Evaluate ONLY these candidates.
-
-    Portfolio Constraints:
-    - Capital is limited.
-    - Select at most TWO BUY decisions.
-    - If uncertain, prefer HOLD.
-
-    Avoid:
-    - chasing large price spikes
-    - reacting to duplicate headlines
-    - over-trading
-
-    ===== CANDIDATE STOCKS =====
+    [CANDIDATE STOCKS]
+    The following NIFTY 50 candidates have been pre-filtered for analysis:
     <candidates>
     {stocks_xml}
     </candidates>
-    ===== END =====
 
-    Return ONLY valid JSON in this format:
+    [DECISION REQUIREMENTS]
+    - Position Sizing: Max 20% of cash per buy (${state['cash_balance'] * 0.20:,.2f}).
+    - Portfolio Strategy: Capital preservation. If you hold a candidate and signals are mixed, recommend HOLD.
+    - Output: ONLY valid JSON.
 
+    Return in this format:
     {{
       "decisions": [
         {{
-          "symbol": "Stock_Symbol",
+          "symbol": "SYMBOL",
           "action": "BUY/SELL/HOLD",
-          "confidence": conf_score,
-          "reasoning": "Short explanation."
+          "confidence": float,
+          "quantity": int,
+          "reasoning": "string"
         }}
       ]
     }}

@@ -2,6 +2,14 @@ from prefect import task
 from investment_engine.services.snapshot_service import SnapshotService
 
 @task
-def create_snapshot():
+def create_snapshot(state, market_snapshot):
 
-    SnapshotService.create_snapshot(portfolio_id=1)
+    price_lookup = {
+        s["symbol"]: s["current_price"]
+        for s in market_snapshot
+    }
+
+    SnapshotService.create(
+        portfolio_id=state["portfolio_id"],
+        price_lookup=price_lookup,
+    )

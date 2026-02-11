@@ -9,6 +9,8 @@ import investment_engine.db.models.portfolio_snapshots
 import investment_engine.db.models.position_snapshots
 import investment_engine.db.models.experiments
 
+import investment_engine.db.models
+
 """
     - Run this file to initialize tables in postgres
 """

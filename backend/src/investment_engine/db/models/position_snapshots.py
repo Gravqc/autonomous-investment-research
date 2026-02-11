@@ -10,8 +10,9 @@ class PositionSnapshot(Base):
 
     id: Mapped[int] = mapped_column(primary_key=True)
 
-    portfolio_id: Mapped[int] = mapped_column(
-        ForeignKey("portfolios.id"), index=True
+    snapshot_id: Mapped[int] = mapped_column(
+        ForeignKey("portfolio_snapshots.id"),
+        index=True
     )
 
     symbol: Mapped[str] = mapped_column(String(10), index=True)
@@ -20,6 +21,3 @@ class PositionSnapshot(Base):
 
     avg_price: Mapped[float] = mapped_column(Numeric(14, 2))
 
-    snapshot_at: Mapped[datetime] = mapped_column(
-        DateTime, default=datetime.utcnow, index=True
-    )
