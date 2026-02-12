@@ -22,10 +22,10 @@ class DailyInvestmentOrchestrator:
         stock_candidates = filter_stock_candidates.fn(market_snapshot=market_snapshot)
 
         # Fill our stock candidates with recent news abt said stock and industry
-        stock_candidates_with_news_data = enrich_candidates.fn(candidates=stock_candidates)
+        #stock_candidates_with_news_data = enrich_candidates.fn(candidates=stock_candidates)
 
         # LLM Decision Phase
-        decisions = generate_decisions.fn(state, enriched_candidates=stock_candidates_with_news_data)
+        decisions = generate_decisions.fn(state, enriched_candidates=stock_candidates)
 
         decision_rows = DecisionService.persist(
             decisions,
@@ -33,9 +33,9 @@ class DailyInvestmentOrchestrator:
         )
         # Simulate trade executions
         execute_trade.fn(
-            decisions=decisions,
+            decision_rows=decision_rows,
             state=state,
-            market_snapshot=market_snapshot,
+            market_snapshot=market_snapshot
         )
 
         # Update portfolio & postion snapshots 

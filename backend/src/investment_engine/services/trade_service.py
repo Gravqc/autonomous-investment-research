@@ -1,4 +1,5 @@
 from datetime import datetime
+import json
 
 from investment_engine.db.session import session_scope
 from investment_engine.db.models.trades import Trade
@@ -11,25 +12,31 @@ class TradeService:
     MIN_CONFIDENCE = 0.60
 
     @staticmethod
-    def execute(decision_response, state, price_lookup):
+    def execute(decision_rows, state, price_lookup, ):
 
         with session_scope() as session:
 
             cash = state["cash_balance"]
             portfolio_id = state["portfolio_id"]
 
-            for d in decision_response.decisions:
+            for decision_row in decision_rows:
 
-                if d.confidence < TradeService.MIN_CONFIDENCE:
+                # Parse the decision data from raw_llm_output
+                decision_data = json.loads(decision_row.raw_llm_output)
+
+                symbol = decision_data["symbol"]
+                action = decision_data["action"]
+                requested_qty = decision_data["quantity"]
+                confidence = decision_data["confidence"]
+
+
+                if confidence < TradeService.MIN_CONFIDENCE:
                     continue
 
-                symbol = d.symbol
                 price = price_lookup.get(symbol)
 
                 if not price:
                     continue
-
-                requested_qty = d.quantity
 
                 if requested_qty <= 0:
                     continue
@@ -44,7 +51,7 @@ class TradeService:
                 if final_qty <= 0:
                     continue
 
-                if d.action == "BUY":
+                if action == "BUY":
 
                     trade = Trade(
                         portfolio_id=portfolio_id,
@@ -53,13 +60,14 @@ class TradeService:
                         total_value=total_val,
                         quantity=final_qty,
                         price=price,
+                        decision_id=decision_row.id,
                     )
 
                     session.add(trade)
 
                     cash -= final_qty * price
 
-                elif d.action == "SELL":
+                elif action == "SELL":
 
                     trade = Trade(
                         portfolio_id=portfolio_id,
@@ -68,6 +76,7 @@ class TradeService:
                         total_value = total_val,
                         quantity=final_qty,
                         price=price,
+                        decision_id=decision_row.id,
                     )
 
                     session.add(trade)
