@@ -93,18 +93,13 @@ poetry run python scripts/start_prefect.py
 # Or directly: prefect server start
 ```
 
-Access Prefect UI at: `http://127.0.0.1:4200`
+Access Prefect UI at: `http://127.0.0.1:4200/dashboard`
 
 (Optional) Start Prefect worker (in another terminal):
 ```bash
 cd backend
 poetry run python scripts/start_prefect_worker.py
 # Or directly: prefect worker start --pool default-agent-pool
-```
-
-Set Prefect API URL:
-```bash
-prefect config set PREFECT_API_URL="http://127.0.0.1:4200/api"
 ```
 
 ### 3. Run Backend API
