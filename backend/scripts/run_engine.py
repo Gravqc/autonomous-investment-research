@@ -1,11 +1,10 @@
-from investment_engine.domain.orchestrators.daily_investment_orchestrator import (
-    DailyInvestmentOrchestrator,
-)
-from investment_engine.workflows.flows import daily_flow
+from investment_engine.workflows.flows.daily_flow import daily_flow
 
 
 def main():
+    print("Starting Daily Investment Flow")
     daily_flow()
+    print("Finished Daily Investment Flow")
 
 
 if __name__ == "__main__":
