@@ -27,11 +27,8 @@ This is an AI-powered paper trading system that tests whether LLMs can make prof
 
 ### Architecture
 ```
-Market Data → Filter → Enrich with News → LLM Decision → Execute Trade → Store Results
-                                              ↓
-                                    Decision Reasoning & Confidence
-                                              ↓
-                                    Linked to Trade Records
+<img width="564" height="430" alt="image" src="https://github.com/user-attachments/assets/eb765a10-4ca5-4f90-99c5-b94c8f42193f" />
+
 ```
 
 All workflow tasks are orchestrated by Prefect, allowing full observability, retry logic, and execution history.
