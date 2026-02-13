@@ -26,10 +26,7 @@ This is an AI-powered paper trading system that tests whether LLMs can make prof
 - **Dependency Management**: Poetry
 
 ### Architecture
-```
-<img width="564" height="430" alt="image" src="https://github.com/user-attachments/assets/eb765a10-4ca5-4f90-99c5-b94c8f42193f" />
-
-```
+![System Architecture](./Arch_Diagram.png)
 
 All workflow tasks are orchestrated by Prefect, allowing full observability, retry logic, and execution history.
 
