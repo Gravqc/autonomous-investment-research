@@ -1,0 +1,39 @@
+name: Daily Investment Flow
+
+on:
+  schedule:
+    - cron: "30 8 * * 1-5"  # 08:30 UTC = 14:00 IST (2pm), Mon–Fri
+  workflow_dispatch: {}     # allow manual runs from GitHub UI
+
+jobs:
+  run-daily-flow:
+    runs-on: ubuntu-latest
+
+    env:
+      POSTGRES_URL: ${{ secrets.POSTGRES_URL }}
+      OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+      FRONTEND_ORIGIN: ${{ secrets.FRONTEND_ORIGIN }}
+      MARKET_AUX_API_KEY: ${{ secrets.MARKET_AUX_API_KEY }}
+      MARKET_AUX_BASE_URL: ${{ secrets.MARKET_AUX_BASE_URL }}
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install Poetry
+        run: |
+          pip install poetry
+          poetry config virtualenvs.in-project true
+
+      - name: Install backend deps
+        working-directory: backend
+        run: poetry install --no-interaction --no-root
+
+      - name: Run daily investment flow
+        working-directory: backend
+        run: poetry run python scripts/run_engine.py
