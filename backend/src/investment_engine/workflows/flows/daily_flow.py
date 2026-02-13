@@ -29,7 +29,7 @@ def daily_flow():
     decisions = generate_decisions(state, enriched_candidates=stock_candidates_with_news_data)
 
     # Store decisions and return decision_id's
-    decision_rows = store_decisions(decisions, portfolio_id=state["portfolio_id"])
+    decision_rows = store_decisions(decisions, state=state)
 
     # Simulate trade executions
     execute_trade(decision_rows=decision_rows, state=state, market_snapshot=market_snapshot)
