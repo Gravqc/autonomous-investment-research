@@ -46,7 +46,6 @@ Create a `.env` file in `backend/` with:
 POSTGRES_URL=postgresql://postgres:postgres@localhost:5432/investment_db
 OPENAI_API_KEY=xxxxx
 OLLAMA_HOST=optional
-SECRET_KEY=supersecret
 FRONTEND_ORIGIN=http://localhost:3000
 PREFECT_API_URL=http://127.0.0.1:4200/api
 ```
