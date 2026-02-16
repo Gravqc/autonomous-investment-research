@@ -41,7 +41,8 @@ POSTGRES_URL=postgresql://postgres:postgres@localhost:5432/investment_db
 OPENAI_API_KEY=xxxxx
 OLLAMA_HOST=optional
 FRONTEND_ORIGIN=http://localhost:3000
-PREFECT_API_URL=http://127.0.0.1:4200/api
+MARKET_AUX_API_KEY=api_key
+MARKET_AUX_BASE_URL=https://api.marketaux.com/v1
 ```
 
 ### Frontend
@@ -135,4 +136,3 @@ Monitor flow execution in the Prefect UI at `http://127.0.0.1:4200`
 ## Notes
 - Application works with local Ollama models as well as OpenAI
 - Use the Poetry Python interpreter for all backend commands
-- Database schemas are not using migrations yet (TBD)
