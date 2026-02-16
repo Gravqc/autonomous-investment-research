@@ -2,17 +2,25 @@
 export interface Position {
   symbol: string;
   quantity: number;
-  avg_price: number;
-  current_value?: number;
-  unrealized_pnl?: number;
+  avg_price: number;                    // Cost basis per share
+  current_price: number;                // Current market price per share
+  current_value: number;                // quantity * current_price
+  cost_basis: number;                   // quantity * avg_price
+  unrealized_pnl: number;               // current_value - cost_basis
+  unrealized_pnl_pct: number;           // (unrealized_pnl / cost_basis) * 100
+  days_held?: number;                   // Days since first purchase
 }
 
 export interface PortfolioState {
   portfolio_id: number;
-  current_value: number;
+  current_value: number;                // Cash + current equity value
   cash_balance: number;
-  equity_value: number;
-  snapshot_date: string;
+  equity_value: number;                 // Sum of current market values
+  cost_basis: number;                   // Sum of cost basis
+  unrealized_pnl: number;               // equity_value - cost_basis
+  unrealized_pnl_pct: number;           // (unrealized_pnl / cost_basis) * 100
+  snapshot_date: string;                // When positions were last updated
+  market_data_timestamp?: string;       // When prices were fetched
   positions: Position[];
 }
 
