@@ -2,6 +2,8 @@ from fastapi import APIRouter, HTTPException, Query
 from typing import Optional
 
 from investment_engine.services.portfolio_service import PortfolioService
+from investment_engine.services.data_sources.market_client import MarketDataClient
+from investment_engine.workflows.utils.nifty_50 import NIFTY_50
 from investment_engine.schemas.portfolio import (
     PortfolioState, 
     PortfolioValueHistory, 
@@ -15,10 +17,26 @@ router = APIRouter(
 
 
 @router.get("/current", response_model=PortfolioState)
-async def get_current_portfolio(portfolio_id: Optional[int] = None):
-    """Get current portfolio state with positions"""
+async def get_current_portfolio(
+    portfolio_id: Optional[int] = None,
+    real_time: bool = Query(True, description="Use real-time market prices for valuation")
+):
+    """Get current portfolio state with optional real-time market valuation"""
     try:
-        return PortfolioService.get_current_portfolio_state(portfolio_id)
+        current_prices = None
+        if real_time:
+            try:
+                # Fetch current market prices for real-time valuation
+                market_data = MarketDataClient.get_market_snapshot(NIFTY_50)
+                current_prices = {
+                    stock["symbol"]: stock["current_price"] 
+                    for stock in market_data
+                }
+            except Exception as e:
+                # If market data fetch fails, fall back to snapshot prices
+                print(f"Warning: Could not fetch real-time prices, using snapshot prices: {e}")
+        
+        return PortfolioService.get_current_portfolio_state(portfolio_id, current_prices)
     except ValueError as e:
         raise HTTPException(status_code=404, detail=str(e))
     except Exception as e:
@@ -55,7 +73,17 @@ async def get_portfolio_performance(portfolio_id: Optional[int] = None):
 async def get_portfolio():
     """Legacy endpoint - redirects to current portfolio state"""
     try:
-        portfolio_state = PortfolioService.get_current_portfolio_state()
+        # Use real-time prices for legacy endpoint too
+        try:
+            market_data = MarketDataClient.get_market_snapshot(NIFTY_50)
+            current_prices = {
+                stock["symbol"]: stock["current_price"] 
+                for stock in market_data
+            }
+        except Exception:
+            current_prices = None
+            
+        portfolio_state = PortfolioService.get_current_portfolio_state(current_prices=current_prices)
         return {
             "total_value": portfolio_state.current_value,
             "cash": portfolio_state.cash_balance,

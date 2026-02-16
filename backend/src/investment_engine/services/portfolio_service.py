@@ -1,11 +1,12 @@
 from datetime import datetime, timedelta
-from typing import List, Optional
+from typing import List, Optional, Dict
 from sqlalchemy import select, desc, func
 
 from investment_engine.db.session import session_scope
 from investment_engine.db.models.portfolios import Portfolio
 from investment_engine.db.models.portfolio_snapshots import PortfolioSnapshot
 from investment_engine.db.models.position_snapshots import PositionSnapshot
+from investment_engine.db.models.trades import Trade
 from investment_engine.schemas.portfolio import (
     PortfolioState, 
     Position, 
@@ -18,16 +19,23 @@ from investment_engine.schemas.portfolio import (
 class PortfolioService:
     
     @staticmethod
-    def build_state():
+    def build_state(current_prices: Optional[Dict[str, float]] = None):
         """
-        Returns the latest portfolio state:
-        - cash
-        - equity
-        - holdings
+        Build portfolio state with real-time market valuation
+        
+        Args:
+            current_prices: dict of {symbol: current_price} from market data
+                          If None, falls back to cost basis for backward compatibility
+        
+        Returns:
+            dict: Portfolio state with current market values and unrealized P&L
         """
         with session_scope() as session:
             portfolio = session.query(Portfolio).first()
+            if not portfolio:
+                raise ValueError("No portfolio found")
 
+            # Get latest snapshot for cash balance and position quantities
             latest_snapshot = (
                 session.query(PortfolioSnapshot)
                 .filter(PortfolioSnapshot.portfolio_id == portfolio.id)
@@ -35,32 +43,87 @@ class PortfolioService:
                 .first()
             )
 
+            if not latest_snapshot:
+                raise ValueError("No snapshots found - portfolio needs to be seeded")
+
+            # Get positions from latest snapshot
             positions = (
                 session.query(PositionSnapshot)
                 .filter(PositionSnapshot.snapshot_id == latest_snapshot.id)
                 .all()
             )
 
-            holdings = [
-                {
+            # Calculate current equity value and build holdings
+            current_equity_value = 0
+            total_cost_basis = 0
+            holdings = []
+
+            for p in positions:
+                # Use current market price if available, otherwise fall back to avg_price
+                current_price = current_prices.get(p.symbol, float(p.avg_price)) if current_prices else float(p.avg_price)
+                
+                quantity = float(p.quantity)
+                avg_price = float(p.avg_price)
+                
+                current_value = quantity * current_price
+                cost_basis = quantity * avg_price
+                unrealized_pnl = current_value - cost_basis
+                unrealized_pnl_pct = (unrealized_pnl / cost_basis * 100) if cost_basis > 0 else 0
+
+                # Calculate days held (approximate - from first trade of this symbol)
+                days_held = None
+                try:
+                    first_trade = (
+                        session.query(Trade)
+                        .filter(
+                            Trade.portfolio_id == portfolio.id,
+                            Trade.symbol == p.symbol,
+                            Trade.side == "BUY"
+                        )
+                        .order_by(Trade.executed_at.asc())
+                        .first()
+                    )
+                    if first_trade:
+                        days_held = (datetime.utcnow() - first_trade.executed_at).days
+                except Exception:
+                    pass  # If calculation fails, leave as None
+
+                current_equity_value += current_value
+                total_cost_basis += cost_basis
+
+                holdings.append({
                     "symbol": p.symbol,
-                    "quantity": p.quantity,
-                    "avg_price": float(p.avg_price),
-                }
-                for p in positions
-            ]
+                    "quantity": quantity,
+                    "avg_price": avg_price,
+                    "current_price": current_price,
+                    "current_value": current_value,
+                    "cost_basis": cost_basis,
+                    "unrealized_pnl": unrealized_pnl,
+                    "unrealized_pnl_pct": unrealized_pnl_pct,
+                    "days_held": days_held,
+                })
+
+            cash_balance = float(latest_snapshot.cash_balance)
+            total_portfolio_value = current_equity_value + cash_balance
+            total_unrealized_pnl = current_equity_value - total_cost_basis
+            total_unrealized_pnl_pct = (total_unrealized_pnl / total_cost_basis * 100) if total_cost_basis > 0 else 0
 
             return {
                 "portfolio_id": portfolio.id,
-                "cash_balance": float(latest_snapshot.cash_balance),
-                "equity_value": float(latest_snapshot.equity_value),
-                "total_value": float(latest_snapshot.total_value),
+                "cash_balance": cash_balance,
+                "equity_value": current_equity_value,
+                "cost_basis": total_cost_basis,
+                "total_value": total_portfolio_value,
+                "unrealized_pnl": total_unrealized_pnl,
+                "unrealized_pnl_pct": total_unrealized_pnl_pct,
                 "holdings": holdings,
+                "snapshot_date": latest_snapshot.created_at,
+                "market_data_timestamp": datetime.utcnow() if current_prices else None,
             }
 
     @staticmethod
-    def get_current_portfolio_state(portfolio_id: Optional[int] = None) -> PortfolioState:
-        """Get the current portfolio state with positions"""
+    def get_current_portfolio_state(portfolio_id: Optional[int] = None, current_prices: Optional[Dict[str, float]] = None) -> PortfolioState:
+        """Get the current portfolio state with real-time market valuation"""
         with session_scope() as session:
             # Get the first portfolio if no ID specified
             if portfolio_id is None:
@@ -87,22 +150,71 @@ class PortfolioService:
                 .all()
             )
 
-            position_list = [
-                Position(
+            # Calculate real-time values
+            current_equity_value = 0
+            total_cost_basis = 0
+            position_list = []
+
+            for pos in positions:
+                # Use current market price if available, otherwise fall back to avg_price
+                current_price = current_prices.get(pos.symbol, float(pos.avg_price)) if current_prices else float(pos.avg_price)
+                
+                quantity = float(pos.quantity)
+                avg_price = float(pos.avg_price)
+                
+                current_value = quantity * current_price
+                cost_basis = quantity * avg_price
+                unrealized_pnl = current_value - cost_basis
+                unrealized_pnl_pct = (unrealized_pnl / cost_basis * 100) if cost_basis > 0 else 0
+
+                # Calculate days held
+                days_held = None
+                try:
+                    first_trade = (
+                        session.query(Trade)
+                        .filter(
+                            Trade.portfolio_id == portfolio_id,
+                            Trade.symbol == pos.symbol,
+                            Trade.side == "BUY"
+                        )
+                        .order_by(Trade.executed_at.asc())
+                        .first()
+                    )
+                    if first_trade:
+                        days_held = (datetime.utcnow() - first_trade.executed_at).days
+                except Exception:
+                    pass
+
+                current_equity_value += current_value
+                total_cost_basis += cost_basis
+
+                position_list.append(Position(
                     symbol=pos.symbol,
-                    quantity=float(pos.quantity),
-                    avg_price=float(pos.avg_price),
-                    current_value=float(pos.quantity * pos.avg_price)
-                )
-                for pos in positions
-            ]
+                    quantity=quantity,
+                    avg_price=avg_price,
+                    current_price=current_price,
+                    current_value=current_value,
+                    cost_basis=cost_basis,
+                    unrealized_pnl=unrealized_pnl,
+                    unrealized_pnl_pct=unrealized_pnl_pct,
+                    days_held=days_held
+                ))
+
+            cash_balance = float(latest_snapshot.cash_balance)
+            total_portfolio_value = current_equity_value + cash_balance
+            total_unrealized_pnl = current_equity_value - total_cost_basis
+            total_unrealized_pnl_pct = (total_unrealized_pnl / total_cost_basis * 100) if total_cost_basis > 0 else 0
 
             return PortfolioState(
                 portfolio_id=portfolio_id,
-                current_value=float(latest_snapshot.total_value),
-                cash_balance=float(latest_snapshot.cash_balance),
-                equity_value=float(latest_snapshot.equity_value),
+                current_value=total_portfolio_value,
+                cash_balance=cash_balance,
+                equity_value=current_equity_value,
+                cost_basis=total_cost_basis,
+                unrealized_pnl=total_unrealized_pnl,
+                unrealized_pnl_pct=total_unrealized_pnl_pct,
                 snapshot_date=latest_snapshot.created_at,
+                market_data_timestamp=datetime.utcnow() if current_prices else None,
                 positions=position_list
             )
 

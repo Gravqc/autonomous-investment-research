@@ -13,26 +13,39 @@ from investment_engine.workflows.tasks.snapshot.create_snapshot import create_sn
 
 @flow
 def daily_flow():
-    # Call Prefect tasks as Python callables; Prefect will handle task runs
-    state = build_state()
-
-    # Fetch nifty 50 stock data
+    """
+    Daily investment workflow with real-time portfolio valuation
+    
+    Key improvement: Fetch market data FIRST, then build portfolio state with current prices
+    This ensures the LLM gets real-time portfolio values for better decision making
+    """
+    # 1. Fetch current market data FIRST
     market_snapshot = fetch_market_snapshot()
+    
+    # 2. Create price lookup for real-time portfolio valuation
+    price_lookup = {
+        s["symbol"]: s["current_price"]
+        for s in market_snapshot
+    }
+    
+    # 3. Build portfolio state with current market prices
+    # This gives the LLM real-time portfolio values instead of stale snapshot data
+    state = build_state(current_prices=price_lookup)
 
-    # Filter top 10 stocks 
+    # 4. Filter top stock candidates based on market conditions
     stock_candidates = filter_stock_candidates(market_snapshot=market_snapshot)
 
-    # Fill our stock candidates with recent news abt said stock and industry
+    # 5. Enrich candidates with recent news and market context
     stock_candidates_with_news_data = enrich_candidates(candidates=stock_candidates)
 
-    # LLM Decision Phase
+    # 6. LLM Decision Phase - now with real-time portfolio context
     decisions = generate_decisions(state, enriched_candidates=stock_candidates_with_news_data)
 
-    # Store decisions and return decision_id's
+    # 7. Store decisions and return decision_id's
     decision_rows = store_decisions(decisions, state=state)
 
-    # Simulate trade executions
+    # 8. Execute trades based on decisions
     execute_trade(decision_rows=decision_rows, state=state, market_snapshot=market_snapshot)
 
-    # Update portfolio & postion snapshots 
+    # 9. Create new portfolio snapshot with current market prices
     create_snapshot.fn(state=state, market_snapshot=market_snapshot)

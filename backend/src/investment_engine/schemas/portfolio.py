@@ -6,17 +6,25 @@ from pydantic import BaseModel
 class Position(BaseModel):
     symbol: str
     quantity: float
-    avg_price: float
-    current_value: Optional[float] = None
-    unrealized_pnl: Optional[float] = None
+    avg_price: float                    # Cost basis per share
+    current_price: float                # Current market price per share
+    current_value: float                # quantity * current_price
+    cost_basis: float                   # quantity * avg_price
+    unrealized_pnl: float               # current_value - cost_basis
+    unrealized_pnl_pct: float           # (unrealized_pnl / cost_basis) * 100
+    days_held: Optional[int] = None     # Days since first purchase
 
 
 class PortfolioState(BaseModel):
     portfolio_id: int
-    current_value: float
+    current_value: float                # Cash + current equity value
     cash_balance: float
-    equity_value: float
-    snapshot_date: datetime
+    equity_value: float                 # Sum of current market values
+    cost_basis: float                   # Sum of cost basis
+    unrealized_pnl: float               # equity_value - cost_basis
+    unrealized_pnl_pct: float           # (unrealized_pnl / cost_basis) * 100
+    snapshot_date: datetime             # When positions were last updated
+    market_data_timestamp: Optional[datetime] = None  # When prices were fetched
     positions: List[Position]
 
 
