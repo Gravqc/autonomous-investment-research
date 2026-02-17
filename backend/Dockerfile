@@ -20,8 +20,8 @@ COPY pyproject.toml poetry.lock ./
 # Configure poetry: don't create virtual env since we're in a container
 RUN poetry config virtualenvs.create false
 
-# Install dependencies (only production dependencies)
-RUN poetry install --no-interaction --no-root
+# Install dependencies (include dev dependencies for now to avoid issues)
+RUN poetry install --no-interaction --no-ansi
 
 # Copy source code
 COPY src/ ./src/
@@ -35,12 +35,8 @@ RUN useradd --create-home --shell /bin/bash app
 RUN chown -R app:app /app
 USER app
 
-# Expose port (Railway will override this with $PORT)
+# Expose port - Railway uses $PORT environment variable
 EXPOSE 8000
 
-# Health check
-HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
-    CMD curl -f http://localhost:8000/api/health || exit 1
-
-# Run the application
-CMD ["uvicorn", "investment_engine.main:app", "--host", "0.0.0.0", "--port", "8000"]
+# Run the application - use Railway's PORT variable (JSON array format for proper signal handling)
+CMD ["sh", "-c", "uvicorn investment_engine.main:app --host 0.0.0.0 --port ${PORT:-8000}"]

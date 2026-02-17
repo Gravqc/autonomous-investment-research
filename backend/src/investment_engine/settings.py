@@ -6,7 +6,7 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 class Settings(BaseSettings):
     postgres_url: PostgresDsn
     openai_api_key: str
-    frontend_origin: AnyHttpUrl
+    frontend_origin: Optional[AnyHttpUrl] = None
     market_aux_api_key:str
     market_aux_base_url:str
 
