@@ -14,15 +14,29 @@ import type {
 const API_BASE_URL = env.NEXT_PUBLIC_FASTAPI_URL;
 
 async function fetchJson<T>(path: string): Promise<T> {
-  const res = await fetch(`${API_BASE_URL}${path}`, {
-    cache: "no-store", // Ensure fresh data
-  });
+  console.log(`🔍 Fetching: ${API_BASE_URL}${path}`);
+  
+  try {
+    const res = await fetch(`${API_BASE_URL}${path}`, {
+      cache: "no-store", // Ensure fresh data
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
 
-  if (!res.ok) {
-    throw new Error(`Failed to fetch ${path}: ${res.status} ${res.statusText}`);
+    console.log(`📡 Response status: ${res.status} for ${path}`);
+
+    if (!res.ok) {
+      throw new Error(`Failed to fetch ${path}: ${res.status} ${res.statusText}`);
+    }
+
+    const data = await res.json();
+    console.log(`✅ Successfully fetched ${path}`);
+    return data;
+  } catch (error) {
+    console.error(`❌ Error fetching ${path}:`, error);
+    throw error;
   }
-
-  return res.json();
 }
 
 // Portfolio API calls
@@ -55,21 +69,30 @@ export const healthApi = {
   check: () => fetchJson<Health>("/api/health"),
 };
 
-// Combined data fetching for dashboard
+// Combined data fetching for dashboard with better error handling
 export async function getDashboardData() {
-  const [portfolioState, valueHistory, performance, recentDecisions, health] = await Promise.all([
-    portfolioApi.getCurrentState(),
-    portfolioApi.getValueHistory(30),
-    portfolioApi.getPerformanceMetrics(),
-    decisionApi.getRecent(5),
-    healthApi.check(),
-  ]);
+  console.log(`🚀 Starting dashboard data fetch from: ${API_BASE_URL}`);
+  
+  try {
+    const [portfolioState, valueHistory, performance, recentDecisions, health] = await Promise.all([
+      portfolioApi.getCurrentState(),
+      portfolioApi.getValueHistory(30),
+      portfolioApi.getPerformanceMetrics(),
+      decisionApi.getRecent(5),
+      healthApi.check(),
+    ]);
 
-  return {
-    portfolioState,
-    valueHistory,
-    performance,
-    recentDecisions,
-    health,
-  };
+    console.log('✅ All dashboard data fetched successfully');
+
+    return {
+      portfolioState,
+      valueHistory,
+      performance,
+      recentDecisions,
+      health,
+    };
+  } catch (error) {
+    console.error('❌ Dashboard data fetch failed:', error);
+    throw error;
+  }
 }
