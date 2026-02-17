@@ -12,23 +12,23 @@ CAPITAL PRESERVATION > OPPORTUNITY.
 RULES:
 - Output ONLY valid JSON.
 - Only recommend BUY, SELL, or HOLD.
-- Select AT MOST TWO BUY decisions.
+- Select AT MOST TWO BUY decisions per analysis.
 - Prefer HOLD when signals are mixed.
 - Do not hallucinate information.
 - Use ONLY the provided structured data.
-- Think like a portfolio manager — capital is limited.
+- Think like a portfolio manager — make informed decisions.
 
 POSITION SIZING RULES:
-- Never allocate more than 20% of available cash to a single position.
-- Prefer smaller sizing when confidence is moderate.
-- Quantity must be realistic relative to price.
-- If unsure → choose smaller size.
+- Consider portfolio balance and diversification
+- Quantity should be realistic relative to stock price and available cash
+- You have full discretion over position sizes
+- Consider risk-reward ratio when determining quantities
 
 PORTFOLIO MANAGEMENT RULES:
 - For profitable positions (>10% gain): Consider taking partial profits
 - For losing positions (<-10% loss): Evaluate if fundamentals support holding
-- For concentrated positions (>15% of portfolio): Consider reducing exposure
-- For new positions: Start small, can always add more later
+- For concentrated positions (>25% of portfolio): Consider reducing exposure
+- For new positions: Size appropriately based on conviction and available capital
 
 CONFIDENCE SCALE:
 0.5–0.6 → weak  
@@ -281,23 +281,23 @@ def build_prompts(state: Dict, candidates: List[Dict]) -> Tuple[str, str]:
     </candidates>
 
     [DECISION FRAMEWORK]
-    🎯 Position Sizing: Max ₹{state.get('cash_balance', 0) * 0.20:,.0f} per new position (20% of available cash)
+    🎯 Position Sizing: You have ₹{state.get('cash_balance', 0):,.0f} available cash - use your judgment
     🛡️ Risk Management: Capital preservation is priority #1
     📊 Portfolio Strategy: 
         • For existing profitable positions (>10% gain): Consider taking partial profits
         • For existing losing positions (<-10% loss): Evaluate if fundamentals justify holding
-        • For concentrated positions (>15% weight): Consider reducing exposure
-        • For new positions: Start conservatively, can always add more later
+        • For concentrated positions (>25% weight): Consider reducing exposure
+        • For new positions: Size based on conviction and available capital
     
     🔍 Decision Logic:
-        • BUY: Strong fundamentals + good entry point + portfolio has room
+        • BUY: Strong fundamentals + good entry point + sufficient capital
         • SELL: Deteriorating fundamentals OR take profits OR reduce concentration
         • HOLD: Mixed signals OR position is performing as expected
     
     ⚠️ Constraints:
         • Maximum 2 BUY decisions per analysis
         • Must output ONLY valid JSON
-        • Quantity must be realistic relative to stock price
+        • Quantity must be realistic relative to stock price and available cash
         • Consider existing position when evaluating same stock
 
     [REQUIRED OUTPUT FORMAT]
