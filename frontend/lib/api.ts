@@ -14,7 +14,6 @@ import type {
 const API_BASE_URL = env.NEXT_PUBLIC_FASTAPI_URL;
 
 async function fetchJson<T>(path: string): Promise<T> {
-  console.log(`🔍 Fetching: ${API_BASE_URL}${path}`);
   
   try {
     const res = await fetch(`${API_BASE_URL}${path}`, {
@@ -24,14 +23,12 @@ async function fetchJson<T>(path: string): Promise<T> {
       },
     });
 
-    console.log(`📡 Response status: ${res.status} for ${path}`);
 
     if (!res.ok) {
       throw new Error(`Failed to fetch ${path}: ${res.status} ${res.statusText}`);
     }
 
     const data = await res.json();
-    console.log(`✅ Successfully fetched ${path}`);
     return data;
   } catch (error) {
     console.error(`❌ Error fetching ${path}:`, error);

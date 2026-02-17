@@ -1,138 +1,139 @@
 # Autonomous Investment Research
 
-An autonomous investment research system that ingests market data, generates AI-driven signals, executes paper trades, and tracks portfolio performance through a structured decision engine using Prefect workflows.
+An autonomous investment research system that analyzes markets,
+generates AI-driven investment decisions, executes paper trades, and
+tracks portfolio performance through a structured decision engine.
 
----
+The project explores whether LLM-powered agents can make disciplined,
+risk-aware investment decisions in live market conditions.
 
-## Project Overview
+------------------------------------------------------------------------
 
-### The Experiment
-This is an AI-powered paper trading system that tests whether LLMs can make profitable investment decisions. The system autonomously analyzes market data, reads financial news, makes buy/sell decisions, and tracks performance over time.
+## Overview
 
-### How It Works
-1. **Data Collection**: Fetches real-time stock prices from Nifty 50
-2. **Candidate Selection**: Filters stocks based on market conditions
-3. **News Enrichment**: Gathers recent news for each stock candidate
-4. **AI Decision Making**: LLM analyzes data and generates investment decisions with confidence scores
-5. **Trade Execution**: Paper trades are executed with risk management rules
-6. **Performance Tracking**: Portfolio snapshots track gains/losses over time
+This system operates as a fully automated investment pipeline:
 
-### Tech Stack
-- **Backend**: FastAPI (Python) with SQLAlchemy ORM
-- **Database**: PostgreSQL for storing decisions, trades, and portfolio state
-- **Workflow**: Prefect for orchestrating multi-step investment pipeline
-- **AI**: OpenAI GPT / Ollama for decision generation
-- **Frontend**: Next.js (React) for portfolio visualization
-- **Dependency Management**: Poetry
+1.  Ingest market data from the Nifty 50 universe\
+2.  Identify high-potential stock candidates\
+3.  Enrich candidates with recent financial news\
+4.  Generate investment decisions using LLM reasoning\
+5.  Execute paper trades with risk controls\
+6.  Track portfolio performance and drawdowns over time
 
-### Architecture
+All steps are orchestrated via **Prefect**, providing observability,
+retries, and execution history.
+
+------------------------------------------------------------------------
+
+## Architecture
+
 ![System Architecture](./Arch_Diagram.png)
 
-All workflow tasks are orchestrated by Prefect, allowing full observability, retry logic, and execution history.
+**Core Components**
 
----
+-   **FastAPI** --- Backend service exposing portfolio, decision, and
+    trade APIs\
+-   **PostgreSQL (Supabase)** --- Durable store for trades, decisions,
+    and portfolio state\
+-   **Prefect** --- Workflow orchestration for the investment engine\
+-   **Next.js** --- Frontend dashboard for portfolio analytics\
+-   **OpenAI / Ollama** --- Decision-generation models
 
-## Environment Variables
+------------------------------------------------------------------------
+
+## Tech Stack
+
+  Layer           Technology
+  --------------- ---------------------------
+  Backend         FastAPI, SQLAlchemy
+  Frontend        Next.js (React)
+  Database        PostgreSQL
+  Orchestration   Prefect
+  AI              OpenAI / Ollama
+  Infra           Vercel, Railway, Supabase
+
+------------------------------------------------------------------------
+
+## Local Setup
 
 ### Backend
-Create a `.env` file in `backend/` with:
-```env
-POSTGRES_URL=postgresql://postgres:postgres@localhost:5432/investment_db
-OPENAI_API_KEY=xxxxx
-OLLAMA_HOST=optional
-FRONTEND_ORIGIN=http://localhost:3000
-MARKET_AUX_API_KEY=api_key
-MARKET_AUX_BASE_URL=https://api.marketaux.com/v1
-```
 
-### Frontend
-Create a `.env.local` file in `frontend/` with:
-```env
-NEXT_PUBLIC_API_URL=http://localhost:3000
-NEXT_PUBLIC_FASTAPI_URL=http://localhost:8000
-```
-
----
-
-## Setup Instructions
-
-### 1. Database Setup
-Start PostgreSQL container:
-```bash
-docker compose up -d
-```
-
-Install backend dependencies:
-```bash
+``` bash
 cd backend
 poetry install
-```
-
-Initialize database tables:
-```bash
 poetry run python src/investment_engine/db/init_db.py
-```
-
-Seed initial portfolio data:
-```bash
 poetry run python scripts/seed.py
-```
-
-### 2. Prefect Setup
-
-Start Prefect server (in separate terminal):
-```bash
-cd backend
-poetry run python scripts/start_prefect.py
-# Or directly: prefect server start
-```
-
-Access Prefect UI at: `http://127.0.0.1:4200/dashboard`
-
-(Optional) Start Prefect worker (in another terminal):
-```bash
-cd backend
-poetry run python scripts/start_prefect_worker.py
-# Or directly: prefect worker start --pool default-agent-pool
-```
-
-### 3. Run Backend API
-Start FastAPI server (in separate terminal):
-```bash
-cd backend
 poetry run uvicorn investment_engine.main:app --reload
 ```
 
-### 4. Run Frontend
-```bash
+### Frontend
+
+``` bash
 cd frontend
 npm install
 npm run dev
 ```
 
----
+------------------------------------------------------------------------
+
+## Environment Variables
+
+### Backend (`backend/.env`)
+
+``` env
+POSTGRES_URL=
+OPENAI_API_KEY=
+FRONTEND_ORIGIN=
+MARKET_AUX_API_KEY=
+MARKET_AUX_BASE_URL=
+```
+
+### Frontend (`frontend/.env.local`)
+
+``` env
+NEXT_PUBLIC_FASTAPI_URL=
+NEXT_PUBLIC_API_URL=
+```
+
+------------------------------------------------------------------------
 
 ## Running the Investment Engine
 
-After completing setup, run the daily investment flow:
-```bash
+Execute the daily workflow manually:
+
+``` bash
 cd backend
 poetry run python scripts/run_engine.py
 ```
 
-This will execute the Prefect flow that:
-1. Builds portfolio state
-2. Fetches market data (Nifty 50)
-3. Filters top stock candidates
-4. Enriches with news data
-5. Generates LLM-based investment decisions
-6. Executes paper trades
-7. Creates portfolio snapshots
+The flow:
 
-Monitor flow execution in the Prefect UI at `http://127.0.0.1:4200`
+-   Builds portfolio state\
+-   Fetches market + news data\
+-   Generates LLM decisions\
+-   Executes paper trades\
+-   Records portfolio snapshots
 
----
+------------------------------------------------------------------------
 
-## Notes
-- Application works with local Ollama models as well as OpenAI
-- Use the Poetry Python interpreter for all backend commands
+## Deployment
+
+The system is continuously deployed via Git-based workflows.
+
+-   **Frontend:** Vercel\
+-   **Backend:** Railway (Docker)\
+-   **Database:** Supabase
+
+Production deployments trigger automatically from the main branch.
+
+**Live System**
+
+Frontend:\
+https://autonomous-investment-research-9yj7ixkbw.vercel.app/
+
+------------------------------------------------------------------------
+
+## Disclaimer
+
+This project is for research and educational purposes only.\
+No real trades are executed.
