@@ -3,6 +3,7 @@ import { decisionApi, healthApi } from "../../lib/api";
 import DecisionCard from "../../components/DecisionCard";
 import LoadingSpinner from "../../components/LoadingSpinner";
 import Tooltip from "../../components/Tooltip";
+import Navigation from "../../components/layout/Navigation";
 import Link from "next/link";
 
 async function DecisionsContent() {
@@ -12,7 +13,9 @@ async function DecisionsContent() {
   ]);
 
   return (
-    <main className="min-h-screen bg-stone-50 text-stone-900 px-4 py-8">
+    <>
+      <Navigation />
+      <main className="min-h-screen bg-stone-50 text-stone-900 px-4 py-8">
       <div className="w-full max-w-6xl mx-auto space-y-8">
         {/* Header */}
         <header className="flex items-center justify-between bg-white rounded-xl border border-stone-200 p-6 shadow-sm">
@@ -130,6 +133,7 @@ async function DecisionsContent() {
         </section>
       </div>
     </main>
+    </>
   );
 }
 

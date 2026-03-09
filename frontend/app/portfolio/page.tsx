@@ -5,6 +5,7 @@ import PerformanceMetrics from "../../components/PerformanceMetrics";
 import PositionCard from "../../components/PositionCard";
 import LoadingSpinner from "../../components/LoadingSpinner";
 import Tooltip from "../../components/Tooltip";
+import Navigation from "../../components/layout/Navigation";
 import Link from "next/link";
 
 async function PortfolioContent() {
@@ -21,7 +22,9 @@ async function PortfolioContent() {
   const getPnLColor = (value: number) => value >= 0 ? "text-emerald-600" : "text-red-600";
 
   return (
-    <main className="min-h-screen bg-stone-50 text-stone-900 px-4 py-8">
+    <>
+      <Navigation />
+      <main className="min-h-screen bg-stone-50 text-stone-900 px-4 py-8">
       <div className="w-full max-w-6xl mx-auto space-y-8">
         {/* Header */}
         <header className="flex items-center justify-between bg-white rounded-xl border border-stone-200 p-6 shadow-sm">
@@ -266,6 +269,7 @@ async function PortfolioContent() {
         </section>
       </div>
     </main>
+    </>
   );
 }
 

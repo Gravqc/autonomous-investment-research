@@ -32,3 +32,35 @@ body {
   background: linear-gradient(to right, #f5f5f4 4%, #e7e5e4 25%, #f5f5f4 36%);
   background-size: 1000px 100%;
 }
+
+/* Minimal animations for landing page */
+@keyframes fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-in {
+  animation: fade-in 0.5s ease-out forwards;
+}
+
+.fade-in {
+  opacity: 0;
+}
+
+.duration-700 {
+  animation-duration: 0.7s;
+}
+
+.delay-150 {
+  animation-delay: 0.15s;
+}
+
+.delay-300 {
+  animation-delay: 0.3s;
+}
