@@ -28,12 +28,7 @@ async function fetchJson<T>(path: string): Promise<T> {
   const url = `${baseUrl}${path}`;
   
   try {
-    const res = await fetch(url, {
-      next: { revalidate: 0 },
-      headers: {
-        'Content-Type': 'application/json',
-      },
-    });
+    const res = await fetch(url);
 
     if (!res.ok) {
       throw new Error(`Failed to fetch ${path}: ${res.status} ${res.statusText}`);
