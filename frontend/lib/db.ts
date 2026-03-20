@@ -3,12 +3,18 @@ import { createClient } from '@supabase/supabase-js';
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
+console.log('Supabase config:', {
+  hasUrl: !!supabaseUrl,
+  hasKey: !!supabaseServiceKey,
+  urlStartsWith: supabaseUrl?.substring(0, 20),
+});
+
 if (!supabaseUrl) {
-  throw new Error(`Missing NEXT_PUBLIC_SUPABASE_URL. Current value: "${supabaseUrl}"`);
+  throw new Error(`Missing NEXT_PUBLIC_SUPABASE_URL environment variable`);
 }
 
 if (!supabaseServiceKey) {
-  throw new Error(`Missing SUPABASE_SERVICE_ROLE_KEY. Current value: "${supabaseServiceKey}"`);
+  throw new Error(`Missing SUPABASE_SERVICE_ROLE_KEY environment variable`);
 }
 
 export const supabase = createClient(supabaseUrl, supabaseServiceKey, {
