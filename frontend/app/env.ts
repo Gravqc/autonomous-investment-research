@@ -4,9 +4,13 @@ type Env = {
    */
   NEXT_PUBLIC_API_URL: string;
   /**
-   * URL of the FastAPI backend server (e.g. http://localhost:8000)
+   * URL of the Supabase project
    */
-  NEXT_PUBLIC_FASTAPI_URL: string;
+  NEXT_PUBLIC_SUPABASE_URL: string;
+  /**
+   * Supabase service role key (server-side only)
+   */
+  SUPABASE_SERVICE_ROLE_KEY: string;
 };
 
 function requireEnv(value: string | undefined, name: string): string {
@@ -19,7 +23,6 @@ function requireEnv(value: string | undefined, name: string): string {
 
 function validateUrl(value: string, name: string): string {
   try {
-    // Throws if not a valid URL
     new URL(value);
     return value;
   } catch {
@@ -33,9 +36,14 @@ function loadEnv(): Env {
     "NEXT_PUBLIC_API_URL",
   );
 
-  const rawFastApiUrl = requireEnv(
-    process.env.NEXT_PUBLIC_FASTAPI_URL,
-    "NEXT_PUBLIC_FASTAPI_URL",
+  const rawSupabaseUrl = requireEnv(
+    process.env.NEXT_PUBLIC_SUPABASE_URL,
+    "NEXT_PUBLIC_SUPABASE_URL",
+  );
+
+  const rawServiceKey = requireEnv(
+    process.env.SUPABASE_SERVICE_ROLE_KEY,
+    "SUPABASE_SERVICE_ROLE_KEY",
   );
 
   return {
@@ -43,7 +51,8 @@ function loadEnv(): Env {
       rawFrontendUrl,
       "NEXT_PUBLIC_API_URL",
     ),
-    NEXT_PUBLIC_FASTAPI_URL: validateUrl(rawFastApiUrl, "NEXT_PUBLIC_FASTAPI_URL"),
+    NEXT_PUBLIC_SUPABASE_URL: validateUrl(rawSupabaseUrl, "NEXT_PUBLIC_SUPABASE_URL"),
+    SUPABASE_SERVICE_ROLE_KEY: rawServiceKey,
   };
 }
 

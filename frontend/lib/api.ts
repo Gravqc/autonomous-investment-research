@@ -11,7 +11,7 @@ import type {
   Health
 } from "../types/api";
 
-const API_BASE_URL = env.NEXT_PUBLIC_FASTAPI_URL;
+const API_BASE_URL = env.NEXT_PUBLIC_API_URL;
 
 async function fetchJson<T>(path: string): Promise<T> {
   
