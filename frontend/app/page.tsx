@@ -4,6 +4,8 @@ import Hero from "../components/landing/Hero";
 import LivePreview from "../components/landing/LivePreview";
 import LoadingSpinner from "../components/LoadingSpinner";
 
+export const dynamic = 'force-dynamic';
+
 async function LandingContent() {
   try {
     const { portfolioState, performance } = await getDashboardData();

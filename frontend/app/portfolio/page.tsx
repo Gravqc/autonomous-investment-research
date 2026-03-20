@@ -8,6 +8,8 @@ import Tooltip from "../../components/Tooltip";
 import Navigation from "../../components/layout/Navigation";
 import Link from "next/link";
 
+export const dynamic = 'force-dynamic';
+
 async function PortfolioContent() {
   const [portfolioState, valueHistory, performance, recentTrades, health] = await Promise.all([
     portfolioApi.getCurrentState(),

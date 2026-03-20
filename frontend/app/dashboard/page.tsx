@@ -7,6 +7,8 @@ import Tooltip from "../../components/Tooltip";
 import Navigation from "../../components/layout/Navigation";
 import Link from "next/link";
 
+export const dynamic = 'force-dynamic';
+
 async function DashboardContent() {
   const { portfolioState, valueHistory, performance, recentDecisions, health } = await getDashboardData();
 

@@ -6,6 +6,8 @@ import Tooltip from "../../components/Tooltip";
 import Navigation from "../../components/layout/Navigation";
 import Link from "next/link";
 
+export const dynamic = 'force-dynamic';
+
 async function DecisionsContent() {
   const [decisionsWithOutcomes, health] = await Promise.all([
     decisionApi.getWithOutcomes(50),
