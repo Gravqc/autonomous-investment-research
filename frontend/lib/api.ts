@@ -1,4 +1,3 @@
-import { env } from "../app/env";
 import type {
   PortfolioState,
   PortfolioValueHistory,
@@ -11,32 +10,26 @@ import type {
   Health
 } from "../types/api";
 
-const API_BASE_URL = env.NEXT_PUBLIC_API_URL;
-
 async function fetchJson<T>(path: string): Promise<T> {
-  
   try {
-    const res = await fetch(`${API_BASE_URL}${path}`, {
-      cache: "no-store", // Ensure fresh data
+    const res = await fetch(path, {
+      next: { revalidate: 0 },
       headers: {
         'Content-Type': 'application/json',
       },
     });
 
-
     if (!res.ok) {
       throw new Error(`Failed to fetch ${path}: ${res.status} ${res.statusText}`);
     }
 
-    const data = await res.json();
-    return data;
+    return res.json();
   } catch (error) {
-    console.error(`❌ Error fetching ${path}:`, error);
+    console.error(`Error fetching ${path}:`, error);
     throw error;
   }
 }
 
-// Portfolio API calls
 export const portfolioApi = {
   getCurrentState: () => fetchJson<PortfolioState>("/api/portfolio/current"),
   getValueHistory: (days: number = 30) => 
@@ -44,7 +37,6 @@ export const portfolioApi = {
   getPerformanceMetrics: () => fetchJson<PerformanceMetrics>("/api/portfolio/performance"),
 };
 
-// Decision API calls
 export const decisionApi = {
   getRecent: (limit: number = 10) => 
     fetchJson<DecisionSummary[]>(`/api/decisions/recent?limit=${limit}`),
@@ -53,7 +45,6 @@ export const decisionApi = {
   getById: (id: number) => fetchJson<DecisionDetail>(`/api/decisions/${id}`),
 };
 
-// Trade API calls
 export const tradeApi = {
   getRecent: (limit: number = 20) => 
     fetchJson<RecentTrades>(`/api/trades/recent?limit=${limit}`),
@@ -61,15 +52,11 @@ export const tradeApi = {
     fetchJson<TradeRecord[]>(`/api/trades/for-decision/${decisionId}`),
 };
 
-// Health check
 export const healthApi = {
   check: () => fetchJson<Health>("/api/health"),
 };
 
-// Combined data fetching for dashboard with better error handling
 export async function getDashboardData() {
-  console.log(`🚀 Starting dashboard data fetch from: ${API_BASE_URL}`);
-  
   try {
     const [portfolioState, valueHistory, performance, recentDecisions, health] = await Promise.all([
       portfolioApi.getCurrentState(),
@@ -79,8 +66,6 @@ export async function getDashboardData() {
       healthApi.check(),
     ]);
 
-    console.log('✅ All dashboard data fetched successfully');
-
     return {
       portfolioState,
       valueHistory,
@@ -89,7 +74,7 @@ export async function getDashboardData() {
       health,
     };
   } catch (error) {
-    console.error('❌ Dashboard data fetch failed:', error);
+    console.error('Dashboard data fetch failed:', error);
     throw error;
   }
 }

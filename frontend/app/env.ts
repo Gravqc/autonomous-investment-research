@@ -1,9 +1,5 @@
 type Env = {
   /**
-   * Public URL of the Next.js frontend (e.g. http://localhost:3000)
-   */
-  NEXT_PUBLIC_API_URL: string;
-  /**
    * URL of the Supabase project
    */
   NEXT_PUBLIC_SUPABASE_URL: string;
@@ -31,11 +27,6 @@ function validateUrl(value: string, name: string): string {
 }
 
 function loadEnv(): Env {
-  const rawFrontendUrl = requireEnv(
-    process.env.NEXT_PUBLIC_API_URL,
-    "NEXT_PUBLIC_API_URL",
-  );
-
   const rawSupabaseUrl = requireEnv(
     process.env.NEXT_PUBLIC_SUPABASE_URL,
     "NEXT_PUBLIC_SUPABASE_URL",
@@ -47,14 +38,9 @@ function loadEnv(): Env {
   );
 
   return {
-    NEXT_PUBLIC_API_URL: validateUrl(
-      rawFrontendUrl,
-      "NEXT_PUBLIC_API_URL",
-    ),
     NEXT_PUBLIC_SUPABASE_URL: validateUrl(rawSupabaseUrl, "NEXT_PUBLIC_SUPABASE_URL"),
     SUPABASE_SERVICE_ROLE_KEY: rawServiceKey,
   };
 }
 
 export const env = loadEnv();
-
